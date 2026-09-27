@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  unit-tests:
+    name: Unit tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install test dependencies
+        shell: pwsh
+        run: |
+          Install-Module Pester -RequiredVersion 5.7.1 -Scope CurrentUser -Force -SkipPublisherCheck
+          Install-Module powershell-yaml -RequiredVersion 0.4.12 -Scope CurrentUser -Force
+      - name: Run unit tests
+        shell: pwsh
+        run: Invoke-Pester -Path ./tests/DrOrchestrator.Tests.ps1 -CI -Output Detailed
+
+  static-analysis:
+    name: PowerShell static analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PSScriptAnalyzer
+        shell: pwsh
+        run: Install-Module PSScriptAnalyzer -RequiredVersion 1.24.0 -Scope CurrentUser -Force
+      - name: Analyze module and tests
+        shell: pwsh
+        run: |
+          $findings = @(Invoke-ScriptAnalyzer -Path . -Recurse -Severity Warning,Error)
+          $findings | Format-Table -AutoSize
+          if ($findings.Count -gt 0) { throw 'PSScriptAnalyzer reported findings.' }
+      - name: Parse JSON Schema
+        shell: pwsh
+        run: Get-Content ./schemas/runbook.schema.json -Raw | ConvertFrom-Json | Out-Null
+
+  vcsim-integration:
+    name: VMware provider integration (vcsim)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install integration dependencies
+        shell: pwsh
+        run: |
+          Install-Module Pester -RequiredVersion 5.7.1 -Scope CurrentUser -Force -SkipPublisherCheck
+          Install-Module powershell-yaml -RequiredVersion 0.4.12 -Scope CurrentUser -Force
+          Install-Module VCF.PowerCLI -RequiredVersion 9.1.1.25718932 -Scope CurrentUser -Force -AllowClobber
+      - name: Start vcsim with powered-off VMs
+        run: >-
+          docker run --rm --detach --name vcsim --publish 8989:8989
+          vmware/vcsim@sha256:a58d77fdb0b52dd7c8ded660890542c3a82518ae3911fe65920428b041a99db2
+          -l 0.0.0.0:8989 -autostart=false
+      - name: Wait for vcsim
+        shell: pwsh
+        run: |
+          $deadline = [DateTime]::UtcNow.AddSeconds(60)
+          do {
+            $client = [System.Net.Sockets.TcpClient]::new()
+            try {
+              $ready = $client.ConnectAsync('localhost', 8989).Wait([TimeSpan]::FromSeconds(2))
+            }
+            catch {
+              $ready = $false
+            }
+            finally {
+              $client.Dispose()
+            }
+            if (-not $ready) { Start-Sleep -Seconds 2 }
+          } until ($ready -or [DateTime]::UtcNow -ge $deadline)
+
+          if (-not $ready) { throw 'vcsim did not become ready on TCP port 8989.' }
+      - name: Run vcsim integration test
+        timeout-minutes: 5
+        shell: pwsh
+        env:
+          DR_VCENTER_SERVER: localhost
+        run: Invoke-Pester -Path ./tests/DrOrchestrator.Vmware.Tests.ps1 -CI -Output Detailed
+      - name: Stop vcsim
+        if: always()
+        run: docker stop vcsim
