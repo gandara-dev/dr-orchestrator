@@ -1,0 +1,11 @@
+graph LR
+    A["Versioned YAML runbook"] --> B["Schema and semantic validation"]
+    B --> C["Stable dependency ordering"]
+    C --> D["Sequential execution engine"]
+    D --> E["VCF PowerCLI provider"]
+    D --> F["Windows provider"]
+    D --> G["Infrastructure-free simulation"]
+    E --> H["Execution result"]
+    F --> H
+    G --> H
+    H --> I["Markdown and HTML reports"]

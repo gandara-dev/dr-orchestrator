@@ -141,13 +141,7 @@ Every value in `dependsOn` is an AND dependency: all listed steps must be
 `Succeeded`. A failed or blocked prerequisite blocks its consumer. Unrelated
 branches remain eligible and retain declaration order.
 
-```mermaid
-flowchart LR
-    AD[Start AD] --> LDAP[Check LDAP]
-    LDAP --> SQL[Start SQL]
-    SQL --> DB[Check listener]
-    Monitoring[Start monitoring] --> MonitorCheck[Check monitoring]
-```
+![Dependency example](diagrams/dependency-example.svg)
 
 If `Start SQL` fails, `Check listener` is blocked while the monitoring branch
 continues.

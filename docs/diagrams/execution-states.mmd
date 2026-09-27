@@ -1,0 +1,8 @@
+stateDiagram-v2
+    [*] --> Ready
+    Ready --> Succeeded: provider succeeds
+    Ready --> Failed: provider returns failure or throws
+    Ready --> Blocked: a dependency did not succeed
+    Succeeded --> [*]
+    Failed --> [*]
+    Blocked --> [*]

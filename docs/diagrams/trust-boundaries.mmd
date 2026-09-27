@@ -1,0 +1,7 @@
+graph LR
+    A["Reviewed repository"] --> C["Orchestrator host"]
+    B["Authenticated operator"] --> C
+    C --> D["vCenter API"]
+    C --> E["PowerShell remoting"]
+    C --> F["TCP and HTTP targets"]
+    C --> G["Local report directory"]

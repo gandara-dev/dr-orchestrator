@@ -1,0 +1,12 @@
+graph TB
+    A["Import-DrRunbook"] --> B["Normalize and validate"]
+    B --> C["Get-DrExecutionOrder"]
+    C --> D["Invoke-DrRunbook"]
+    D --> E["Provider dispatcher"]
+    E --> F["Simulation"]
+    E --> G["VMware provider"]
+    E --> H["Windows provider"]
+    D --> I["Execution result object"]
+    I --> J["Export-DrReport"]
+    J --> K["report.md"]
+    J --> L["report.html"]

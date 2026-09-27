@@ -1,7 +1,7 @@
 # Architecture
 
 This document describes the internal design and operational boundaries of DR
-Orchestrator `0.1.0`.
+Orchestrator `0.1.1`.
 
 ## Design goals
 
@@ -14,20 +14,7 @@ Orchestrator `0.1.0`.
 
 ## Components
 
-```mermaid
-flowchart TB
-    Import[Import-DrRunbook] --> Normalize[Normalize and validate]
-    Normalize --> Sort[Get-DrExecutionOrder]
-    Sort --> Invoke[Invoke-DrRunbook]
-    Invoke --> Dispatch[Provider dispatcher]
-    Dispatch --> Sim[Simulation]
-    Dispatch --> VI[VMware provider]
-    Dispatch --> Win[Windows provider]
-    Invoke --> Result[Execution result object]
-    Result --> Export[Export-DrReport]
-    Export --> MD[report.md]
-    Export --> HTML[report.html]
-```
+![Component flow](diagrams/component-flow.svg)
 
 ### Import and validation
 
@@ -68,20 +55,11 @@ the selected provider and records timing and outcome.
 
 Provider exceptions are contained at the step boundary and converted to a
 `Failed` result. Execution then continues so independent branches can complete.
-The engine never retries or rolls back automatically in version `0.1.0`.
+The engine never retries or rolls back automatically in version `0.1.1`.
 
 ## Step state model
 
-```mermaid
-stateDiagram-v2
-    [*] --> Ready
-    Ready --> Succeeded: provider succeeds
-    Ready --> Failed: provider returns failure or throws
-    Ready --> Blocked: a dependency did not succeed
-    Succeeded --> [*]
-    Failed --> [*]
-    Blocked --> [*]
-```
+![Execution state model](diagrams/execution-states.svg)
 
 The overall run is `Failed` when at least one step is `Failed`. A run containing
 only `Succeeded` steps is `Succeeded`. `Blocked` steps are consequences of a
@@ -140,15 +118,7 @@ treat them as operational evidence and apply appropriate retention controls.
 
 ## Trust boundaries
 
-```mermaid
-flowchart LR
-    Repo[Reviewed repository] --> Host[Orchestrator host]
-    Operator[Authenticated operator] --> Host
-    Host --> VC[vCenter API]
-    Host --> PS[PowerShell remoting]
-    Host --> Net[TCP and HTTP targets]
-    Host --> Files[Local report directory]
-```
+![Trust boundaries](diagrams/trust-boundaries.svg)
 
 The repository is trusted as executable configuration. The orchestrator host
 holds live sessions and network access. vCenter, remote Windows hosts, health

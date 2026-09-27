@@ -44,6 +44,20 @@ jobs:
         shell: pwsh
         run: Get-Content ./schemas/runbook.schema.json -Raw | ConvertFrom-Json | Out-Null
 
+  diagram-validation:
+    name: Mermaid diagram validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Render versioned Mermaid sources
+        run: |
+          for diagram in docs/diagrams/*.mmd; do
+            output="/tmp/$(basename "${diagram%.mmd}").svg"
+            docker run --rm --volume "$PWD:/data:ro" \
+              ghcr.io/mermaid-js/mermaid-cli/mermaid-cli@sha256:a6fb0574dded4086888b5e38476899c9aff8963196f689f11a0f8fceee588ce1 \
+              -i "/data/$diagram" -o "$output" -b white
+          done
+
   vcsim-integration:
     name: VMware provider integration (vcsim)
     runs-on: ubuntu-latest

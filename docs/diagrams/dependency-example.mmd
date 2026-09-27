@@ -1,0 +1,5 @@
+graph LR
+    A["Start AD"] --> B["Check LDAP"]
+    B --> C["Start SQL"]
+    C --> D["Check listener"]
+    E["Start monitoring"] --> F["Check monitoring"]

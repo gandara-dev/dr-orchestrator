@@ -30,19 +30,7 @@ and failures easy to propagate. DR Orchestrator separates those concerns:
 
 ## Architecture
 
-```mermaid
-flowchart LR
-    YAML[Versioned YAML runbook] --> Validate[Schema and semantic validation]
-    Validate --> DAG[Stable dependency ordering]
-    DAG --> Engine[Sequential execution engine]
-    Engine --> VMware[VCF PowerCLI provider]
-    Engine --> Windows[Windows provider]
-    Engine --> Simulation[Infrastructure-free simulation]
-    VMware --> Timeline[Execution result]
-    Windows --> Timeline
-    Simulation --> Timeline
-    Timeline --> Reports[Markdown and HTML reports]
-```
+![DR Orchestrator architecture](docs/diagrams/architecture-overview.svg)
 
 The engine is intentionally sequential. Recovery teams can inspect a single,
 deterministic timeline, while independent branches continue after an unrelated
@@ -169,7 +157,7 @@ instance. It never requires a production vCenter. See the
 
 ## Current scope
 
-Version `0.1.0` executes steps sequentially and does not implement retries,
+Version `0.1.1` executes steps sequentially and does not implement retries,
 parallel branches, automatic rollback, credential storage, or remote evidence
 collection. These are explicit safety boundaries, not implicit promises.
 
