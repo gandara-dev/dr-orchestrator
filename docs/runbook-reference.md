@@ -23,7 +23,15 @@ a complete synthetic example.
 | `provider` | yes | string | `VMware` or `Windows` |
 | `action` | yes | string | Provider-specific action |
 | `dependsOn` | no | string[] | Step IDs that must all succeed first |
+| `expectedDurationSeconds` | no | integer | Planned duration from 1 to 604800 seconds, used for recovery planning |
 | `parameters` | yes | object | Provider/action parameters |
+
+`expectedDurationSeconds` never changes execution. `Get-DrRecoveryPlan` uses it
+to report two planning figures: the sequential estimate (the sum of all steps,
+which is how the engine runs) and the critical path (the longest dependency
+chain, a lower bound if independent branches ran in parallel). Steps without a
+value count as zero and are listed in `MissingDurations`. Both are estimates
+from the runbook, not measurements.
 
 IDs should match `^[a-zA-Z0-9][a-zA-Z0-9_-]*$`. Renaming an ID is a behavioral
 change because dependencies and failure-injection tests refer to it.

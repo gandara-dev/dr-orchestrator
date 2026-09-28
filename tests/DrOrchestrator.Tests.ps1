@@ -9,9 +9,9 @@ Describe 'Module contract' {
         $manifest = Test-ModuleManifest -Path $modulePath
         $commands = @(Get-Command -Module DrOrchestrator | Select-Object -ExpandProperty Name)
 
-        $manifest.Version | Should -Be '0.1.2'
+        $manifest.Version | Should -Be '0.2.0'
         (($commands | Sort-Object) -join ',') | Should -Be (
-            'Export-DrReport,Get-DrExecutionOrder,Import-DrRunbook,Invoke-DrRunbook'
+            'Export-DrReport,Get-DrExecutionOrder,Get-DrRecoveryPlan,Import-DrRunbook,Invoke-DrRunbook'
         )
     }
 
@@ -162,3 +162,102 @@ Describe 'Report export' {
         $html | Should -Match '&lt;script&gt;'
     }
 }
+
+Describe 'Recovery planning' {
+    BeforeAll {
+        $script:citrixRunbookPath = Join-Path $PSScriptRoot '../runbooks/citrix-site-recovery.yml'
+    }
+
+    It 'derives the sequential estimate and the critical path from step durations' {
+        $plan = Import-DrRunbook -Path $citrixRunbookPath | Get-DrRecoveryPlan
+
+        $plan.SequentialEstimateSeconds | Should -Be 2730
+        $plan.CriticalPathSeconds | Should -Be 1890
+        ($plan.CriticalPath -join ',') | Should -Be (
+            'start-ad,check-ad-ldap,start-sql,check-sql,start-delivery-controllers,check-delivery-controller,start-vdas,wait-vda-tools'
+        )
+        $plan.MissingDurations | Should -BeNullOrEmpty
+        ($plan.Steps | Where-Object Id -eq 'check-gateway').Level | Should -Be 8
+        ($plan.Steps | Where-Object Id -eq 'start-netscaler').OnCriticalPath | Should -BeFalse
+    }
+
+    It 'counts steps without a duration as zero and reports them' {
+        $path = Join-Path $TestDrive 'partial.yml'
+        @(
+            'name: Partial'
+            'version: 1'
+            'steps:'
+            '  - id: a'
+            '    name: A'
+            '    provider: VMware'
+            '    action: StartVM'
+            '    expectedDurationSeconds: 60'
+            '    parameters: { vmNames: [vm-a] }'
+            '  - id: b'
+            '    name: B'
+            '    provider: VMware'
+            '    action: StartVM'
+            '    dependsOn: [a]'
+            '    parameters: { vmNames: [vm-b] }'
+        ) | Set-Content -LiteralPath $path
+
+        $plan = Import-DrRunbook -Path $path | Get-DrRecoveryPlan
+        $plan.CriticalPathSeconds | Should -Be 60
+        @($plan.MissingDurations) | Should -Be @('b')
+    }
+
+    It 'rejects a duration that is not a whole number of seconds' {
+        $path = Join-Path $TestDrive 'bad-duration.yml'
+        @(
+            'name: Bad'
+            'version: 1'
+            'steps:'
+            '  - id: a'
+            '    name: A'
+            '    provider: VMware'
+            '    action: StartVM'
+            '    expectedDurationSeconds: 1.5'
+            '    parameters: { vmNames: [vm-a] }'
+        ) | Set-Content -LiteralPath $path
+
+        { Import-DrRunbook -Path $path } | Should -Throw '*expectedDurationSeconds must be a whole number*'
+    }
+
+    It 'keeps independent branches running when a shared service fails' {
+        $execution = Import-DrRunbook -Path $citrixRunbookPath |
+            Invoke-DrRunbook -Simulation -InjectFailureStepId start-license
+
+        $status = @{}
+        foreach ($step in $execution.Steps) { $status[$step.Id] = $step.Status }
+        $execution.Status | Should -Be 'Failed'
+        $status['start-license'] | Should -Be 'Failed'
+        $status['start-delivery-controllers'] | Should -Be 'Blocked'
+        $status['check-sql'] | Should -Be 'Succeeded'
+        $status['check-smb'] | Should -Be 'Succeeded'
+        $status['start-netscaler'] | Should -Be 'Succeeded'
+    }
+}
+
+Describe 'Runbook Viewer contract' {
+    BeforeAll {
+        $script:repositoryRoot = Split-Path -Parent $PSScriptRoot
+    }
+
+    It 'publishes JSON runbooks that match the YAML sources' {
+        foreach ($source in Get-ChildItem -Path (Join-Path $repositoryRoot 'runbooks') -Filter '*.yml') {
+            $generated = Join-Path $TestDrive ($source.BaseName + '.json')
+            & (Join-Path $repositoryRoot 'scripts/Export-DrRunbookJson.ps1') -Path $source.FullName -OutputPath $generated | Out-Null
+            $published = Join-Path $repositoryRoot "site/runbooks/$($source.BaseName).json"
+            (Get-Content -LiteralPath $generated -Raw) -replace "`r`n", "`n" |
+                Should -BeExactly ((Get-Content -LiteralPath $published -Raw) -replace "`r`n", "`n")
+        }
+    }
+
+    It 'keeps the shared viewer fixtures in sync with the engine' {
+        $generated = Join-Path $TestDrive 'viewer-cases.json'
+        & (Join-Path $PSScriptRoot 'Update-ViewerFixtures.ps1') -OutputPath $generated
+        (Get-Content -LiteralPath $generated -Raw) -replace "`r`n", "`n" |
+            Should -BeExactly ((Get-Content -LiteralPath (Join-Path $PSScriptRoot 'fixtures/viewer-cases.json') -Raw) -replace "`r`n", "`n")
+    }
+}
+

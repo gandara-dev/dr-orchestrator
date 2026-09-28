@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Runbook Viewer | DR Orchestrator</title>
+  <meta name="description" content="Explore a dependency-aware disaster recovery runbook: inject failures, simulate the recovery, and see the critical path and planned recovery time.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="banner" role="note">
+    Simulation with synthetic example runbooks. Nothing here connects to vCenter, Windows, or any real system.
+  </div>
+
+  <div class="wrap">
+    <header class="top">
+      <h1>Runbook Viewer</h1>
+      <p>
+        See how the <a href="https://github.com/gandara-dev/dr-orchestrator">DR Orchestrator</a> recovers a site.
+        Choose steps that should fail, run the simulation, and watch dependent steps get blocked while
+        independent branches keep going. The browser engine is tested against the same fixtures as the PowerShell module.
+      </p>
+    </header>
+
+    <div class="controls" role="group" aria-label="Simulation controls">
+      <label>Runbook
+        <select id="runbook-select">
+          <option value="citrix-site-recovery">Citrix site recovery (branches)</option>
+          <option value="site-recovery">Linear site recovery</option>
+        </select>
+      </label>
+      <label class="button" for="open-file">Open runbook JSON</label>
+      <input type="file" id="open-file" accept="application/json,.json" class="sr-only">
+      <label>Speed
+        <select id="speed">
+          <option value="80">Fast</option>
+          <option value="250" selected>Normal</option>
+          <option value="600">Slow</option>
+          <option value="0">Instant</option>
+        </select>
+      </label>
+      <span class="spacer"></span>
+      <button type="button" id="clear-failures">Clear failures</button>
+      <button type="button" id="reset">Reset</button>
+      <button type="button" class="primary" id="run">Run simulation</button>
+    </div>
+    <div class="error-box" id="load-error" role="alert"></div>
+
+    <dl class="stats" id="stats"></dl>
+
+    <section class="card" aria-labelledby="graph-title">
+      <h2 id="graph-title">Dependency graph</h2>
+      <p class="hint">Columns are dependency levels; scroll sideways on smaller screens. Select a step to see its details and choose whether it should fail in the next run.</p>
+      <div class="graph-scroll"><svg class="graph" id="graph" role="img" aria-label="Runbook dependency graph"></svg></div>
+      <div class="legend">
+        <span class="l-critical">Critical path</span>
+        <span class="l-inject">Will fail</span>
+        <span class="l-ok">Succeeded</span>
+        <span class="l-fail">Failed</span>
+        <span class="l-block">Blocked</span>
+      </div>
+    </section>
+
+    <div class="layout">
+      <section class="card" aria-labelledby="timeline-title">
+        <h2 id="timeline-title">Timeline</h2>
+        <p class="timeline-legend">
+          Outlined bars: earliest start and finish if independent branches ran in parallel (the critical path is highlighted).
+          Solid bars: the simulated run, one step at a time, which is how the engine executes today.
+        </p>
+        <div class="timeline" id="timeline"></div>
+      </section>
+
+      <aside>
+        <section class="card detail" aria-labelledby="detail-title">
+          <h2 id="detail-title">Step details</h2>
+          <div id="detail"><p class="hint">Select a step in the graph.</p></div>
+        </section>
+        <section class="card" aria-labelledby="export-title">
+          <h2 id="export-title">Report</h2>
+          <p class="hint">After a run, download a Markdown report with the same table layout as <code>Export-DrReport</code>.</p>
+          <button type="button" id="download-report" disabled>Download report.md</button>
+        </section>
+      </aside>
+    </div>
+
+    <footer>
+      Durations are illustrative planning values from the runbook, not measurements. The simulated run replaces every
+      provider call with a synthetic result; it proves ordering and failure propagation, not your infrastructure's RTO.
+      Convert your own YAML with <code>scripts/Export-DrRunbookJson.ps1</code> and open it here.
+    </footer>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

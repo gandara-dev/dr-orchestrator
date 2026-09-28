@@ -1,6 +1,6 @@
 @{
     RootModule = 'DrOrchestrator.psm1'
-    ModuleVersion = '0.1.2'
+    ModuleVersion = '0.2.0'
     GUID = 'e3d9ef25-283f-45ba-95a1-e3bd5519b1da'
     Author = 'Mateus Gandara'
     CompanyName = 'Community'
@@ -17,6 +17,7 @@
     FunctionsToExport = @(
         'Import-DrRunbook',
         'Get-DrExecutionOrder',
+        'Get-DrRecoveryPlan',
         'Invoke-DrRunbook',
         'Export-DrReport'
     )

@@ -2,6 +2,22 @@
 
 All notable changes to this project are documented here.
 
+## [0.2.0] - 2026-09-28
+
+### Added
+
+- Runbook Viewer (`site/`): dependency graph by level, failure selection,
+  animated simulation, planned-versus-simulated timeline, and Markdown report,
+  published with GitHub Pages and runnable with `scripts/Start-RunbookViewer.ps1`.
+- `Get-DrRecoveryPlan`, which reports dependency levels, the critical path, the
+  sequential estimate, and the critical-path lower bound.
+- Optional `expectedDurationSeconds` step field, validated from 1 to 604800.
+- `Invoke-DrRunbook -Runbook` accepts an imported runbook from the pipeline.
+- A branched synthetic Citrix site recovery runbook with independent licensing,
+  profile storage, and gateway branches.
+- `scripts/Export-DrRunbookJson.ps1` and fixtures generated from the PowerShell
+  engine that the viewer's JavaScript engine must reproduce exactly.
+
 ## [0.1.2] - 2026-09-28
 
 ### Added

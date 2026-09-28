@@ -7,7 +7,10 @@ without claiming that a simulator can validate an organization's recovery plan.
 
 Every change must pass:
 
-- a fresh-clone simulation of the sample runbook;
+- a fresh-clone simulation of both sample runbooks;
+- the Runbook Viewer's Node suite, which asserts the fixtures generated from the
+  PowerShell engine, and Pester checks that those fixtures and the published
+  JSON runbooks are current;
 - all Pester unit tests on Windows and Linux;
 - report generation and HTML encoding checks;
 - PSScriptAnalyzer with warning and error severity enabled;
@@ -22,8 +25,11 @@ Install-Module Pester -RequiredVersion 5.7.1 -Scope CurrentUser -Force -SkipPubl
 Install-Module powershell-yaml -RequiredVersion 0.4.12 -Scope CurrentUser -Force
 Invoke-Pester ./tests/DrOrchestrator.Tests.ps1 -CI -Output Detailed
 
-$execution = Invoke-DrRunbook ./runbooks/site-recovery.yml -Simulation
-if ($execution.Status -ne 'Succeeded') { throw 'Simulation failed.' }
+foreach ($runbook in './runbooks/site-recovery.yml', './runbooks/citrix-site-recovery.yml') {
+    $execution = Invoke-DrRunbook $runbook -Simulation
+    if ($execution.Status -ne 'Succeeded') { throw "Simulation failed: $runbook" }
+}
+node --test tests/web/*.test.mjs
 ```
 
 The exact disposable VMware integration procedure is documented in

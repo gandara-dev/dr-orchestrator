@@ -1,0 +1,41 @@
+{
+  "description": "Inputs for the shared viewer fixtures. scripts/Update-ViewerFixtures.ps1 runs them through the PowerShell module and writes tests/fixtures/viewer-cases.json, which both test suites then assert against.",
+  "simulations": [
+    { "name": "linear runbook succeeds", "runbook": "site-recovery", "failures": [] },
+    { "name": "linear runbook blocks everything after SQL", "runbook": "site-recovery", "failures": ["start-sql"] },
+    { "name": "license failure leaves independent branches running", "runbook": "citrix-site-recovery", "failures": ["start-license"] },
+    { "name": "gateway appliance failure only blocks the gateway check", "runbook": "citrix-site-recovery", "failures": ["start-netscaler"] },
+    { "name": "two failures in different branches", "runbook": "citrix-site-recovery", "failures": ["check-sql", "check-smb"] },
+    { "name": "failure IDs are case-insensitive", "runbook": "citrix-site-recovery", "failures": ["START-AD"] }
+  ],
+  "plans": ["site-recovery", "citrix-site-recovery"],
+  "base": {
+    "name": "Fixture",
+    "version": 1,
+    "steps": [
+      { "id": "a", "name": "Start A", "provider": "VMware", "action": "StartVM", "expectedDurationSeconds": 60, "parameters": { "vmNames": ["vm-a"] } },
+      { "id": "b", "name": "Check B", "provider": "Windows", "action": "TestTcpPort", "dependsOn": ["a"], "parameters": { "computerName": "b.example.test", "port": 443 } }
+    ]
+  },
+  "invalid": [
+    { "name": "missing steps", "remove": "steps" },
+    { "name": "blank name", "set": { "name": " " } },
+    { "name": "unsupported version", "set": { "version": 2 } },
+    { "name": "no steps", "set": { "steps": [] } },
+    { "name": "step without action", "step": 0, "removeStep": "action" },
+    { "name": "duplicate id with different case", "step": 1, "setStep": { "id": "A" } },
+    { "name": "unsupported provider", "step": 0, "setStep": { "provider": "HyperV" } },
+    { "name": "action from another provider", "step": 0, "setStep": { "action": "TestHttp" } },
+    { "name": "StartVM without VMs", "step": 0, "setStep": { "parameters": { "vmNames": [] } } },
+    { "name": "TCP port out of range", "step": 1, "setStep": { "parameters": { "computerName": "b.example.test", "port": 70000 } } },
+    { "name": "TCP check without computer", "step": 1, "setStep": { "parameters": { "port": 443 } } },
+    { "name": "HTTP check with a relative URI", "step": 1, "setStep": { "action": "TestHttp", "parameters": { "uri": "/health" } } },
+    { "name": "zero timeout", "step": 0, "setStep": { "parameters": { "vmNames": ["vm-a"], "timeoutSeconds": 0 } } },
+    { "name": "parameters as a list", "step": 0, "setStep": { "parameters": ["vm-a"] } },
+    { "name": "fractional duration", "step": 0, "setStep": { "expectedDurationSeconds": 1.5 } },
+    { "name": "duration above one week", "step": 0, "setStep": { "expectedDurationSeconds": 604801 } },
+    { "name": "unknown dependency", "step": 1, "setStep": { "dependsOn": ["missing"] } },
+    { "name": "self dependency", "step": 1, "setStep": { "dependsOn": ["B"] } },
+    { "name": "dependency cycle", "step": 0, "setStep": { "dependsOn": ["b"] }, "order": true }
+  ]
+}
