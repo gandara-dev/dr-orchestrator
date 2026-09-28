@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## [0.1.2] - 2026-09-28
+
+### Added
+
+- Release-verification guide separating the public simulation and PowerCLI
+  `vcsim` gate from the environment-specific production recovery exercise.
+
 ## [0.1.1] - 2026-09-27
 
 ### Fixed

@@ -125,6 +125,7 @@ and machine-readable [JSON Schema](schemas/runbook.schema.json).
 | [Runbook reference](docs/runbook-reference.md) | YAML fields, actions, parameters, dependency rules, validation |
 | [Operations guide](docs/operations-guide.md) | Production preparation, credentials, execution, failure handling, reports |
 | [Testing guide](docs/testing.md) | Unit and vcsim integration tests, CI behavior, demo reproduction |
+| [Release verification](docs/release-verification.md) | Public release gate and required environment acceptance |
 | [Security policy](SECURITY.md) | Security assumptions, secret handling, reporting vulnerabilities |
 | [Contributing](CONTRIBUTING.md) | Development workflow and acceptance criteria |
 
@@ -157,7 +158,7 @@ instance. It never requires a production vCenter. See the
 
 ## Current scope
 
-Version `0.1.1` executes steps sequentially and does not implement retries,
+Version `0.1.2` executes steps sequentially and does not implement retries,
 parallel branches, automatic rollback, credential storage, or remote evidence
 collection. These are explicit safety boundaries, not implicit promises.
 

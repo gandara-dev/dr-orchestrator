@@ -1,7 +1,7 @@
 # Architecture
 
 This document describes the internal design and operational boundaries of DR
-Orchestrator `0.1.1`.
+Orchestrator `0.1.2`.
 
 ## Design goals
 
@@ -55,7 +55,7 @@ the selected provider and records timing and outcome.
 
 Provider exceptions are contained at the step boundary and converted to a
 `Failed` result. Execution then continues so independent branches can complete.
-The engine never retries or rolls back automatically in version `0.1.1`.
+The engine never retries or rolls back automatically in version `0.1.2`.
 
 ## Step state model
 

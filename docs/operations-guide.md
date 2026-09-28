@@ -108,7 +108,7 @@ reports as potentially sensitive incident evidence.
 
 ## 7. Rollback and rerun boundaries
 
-Version `0.1.1` has no automatic rollback, retry, checkpoint resume, or
+Version `0.1.2` has no automatic rollback, retry, checkpoint resume, or
 idempotency ledger. Some actions are naturally repeatable (`StartVM` skips an
 already powered-on VM; `StartService` skips a running service), but a complete
 rerun must still be an operator decision.
