@@ -177,12 +177,23 @@ function ConvertTo-DrRunbookDefinition {
             -Action $action `
             -Parameters $parameters
 
+        $expectedDuration = $null
+        if (Test-DrPropertyPresence -InputObject $sourceStep -Name 'expectedDurationSeconds') {
+            $rawDuration = Get-DrPropertyValue -InputObject $sourceStep -Name 'expectedDurationSeconds'
+            $isWholeNumber = ($rawDuration -is [int]) -or ($rawDuration -is [long])
+            if (-not $isWholeNumber -or $rawDuration -lt 1 -or $rawDuration -gt 604800) {
+                throw "Step '$id' expectedDurationSeconds must be a whole number from 1 to 604800."
+            }
+            $expectedDuration = [int]$rawDuration
+        }
+
         $steps.Add([pscustomobject]@{
             Id = $id
             Name = [string]$sourceStep.name
             Provider = $provider
             Action = $action
             DependsOn = [string[]]$dependencies
+            ExpectedDurationSeconds = $expectedDuration
             Parameters = $parameters
         })
     }

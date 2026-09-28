@@ -54,13 +54,40 @@ The test creates no production connection and never prompts for credentials.
 Use a disposable simulator because it intentionally changes a simulated VM from
 `PoweredOff` to `PoweredOn`.
 
+## Runbook Viewer tests
+
+The viewer's JavaScript engine must behave exactly like the PowerShell module.
+The module is the reference: `tests/Update-ViewerFixtures.ps1` runs the inputs in
+`tests/fixtures/viewer-inputs.json` through it and writes
+`tests/fixtures/viewer-cases.json` (simulated statuses and messages, recovery
+plans, and validation errors). The Node suite asserts the browser engine against
+that file with Node.js 20 or newer and no npm dependencies:
+
+```powershell
+node --test tests/web/*.test.mjs
+```
+
+Pester fails when `viewer-cases.json` or the JSON runbooks in `site/runbooks/`
+are out of date. After changing the engine, a sample runbook, or the inputs, run:
+
+```powershell
+./scripts/Export-DrRunbookJson.ps1 -All
+./tests/Update-ViewerFixtures.ps1
+```
+
+then review the diff before committing.
+
 ## Continuous integration
 
 `.github/workflows/ci.yml` performs:
 
 1. unit tests on current GitHub-hosted Windows and Ubuntu runners;
 2. PSScriptAnalyzer with warning and error severities;
-3. VCF PowerCLI integration against a digest-pinned `vcsim` image.
+3. VCF PowerCLI integration against a digest-pinned `vcsim` image;
+4. the Runbook Viewer's Node suite.
+
+`.github/workflows/pages.yml` tests the viewer again and publishes `site/` to
+GitHub Pages when it changes on `main`.
 
 The workflow has read-only repository permissions. It uses no repository secret
 and cannot contact a private vCenter unless the workflow is deliberately

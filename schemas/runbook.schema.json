@@ -30,6 +30,12 @@
         "name": { "type": "string", "minLength": 1 },
         "provider": { "enum": ["VMware", "Windows"] },
         "action": { "type": "string", "minLength": 1 },
+        "expectedDurationSeconds": {
+          "description": "Planned duration used by Get-DrRecoveryPlan and the Runbook Viewer.",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 604800
+        },
         "dependsOn": {
           "type": "array",
           "items": { "type": "string", "minLength": 1 },

@@ -1,0 +1,142 @@
+{
+  "name": "Synthetic Site Recovery",
+  "version": 1,
+  "description": "Fictional dependency-ordered recovery example for simulation and lab use.",
+  "steps": [
+    {
+      "id": "start-ad",
+      "name": "Start Active Directory VMs",
+      "provider": "VMware",
+      "action": "StartVM",
+      "expectedDurationSeconds": 240,
+      "parameters": {
+        "vmNames": [
+          "dr-ad01",
+          "dr-ad02"
+        ]
+      }
+    },
+    {
+      "id": "check-ad-ldap",
+      "name": "Check LDAP on the primary domain controller",
+      "provider": "Windows",
+      "action": "TestTcpPort",
+      "dependsOn": [
+        "start-ad"
+      ],
+      "expectedDurationSeconds": 30,
+      "parameters": {
+        "computerName": "dr-ad01.example.test",
+        "port": 389,
+        "timeoutSeconds": 10
+      }
+    },
+    {
+      "id": "start-sql",
+      "name": "Start SQL VMs",
+      "provider": "VMware",
+      "action": "StartVM",
+      "dependsOn": [
+        "check-ad-ldap"
+      ],
+      "expectedDurationSeconds": 300,
+      "parameters": {
+        "vmNames": [
+          "dr-sql01"
+        ]
+      }
+    },
+    {
+      "id": "check-sql",
+      "name": "Check SQL listener",
+      "provider": "Windows",
+      "action": "TestTcpPort",
+      "dependsOn": [
+        "start-sql"
+      ],
+      "expectedDurationSeconds": 60,
+      "parameters": {
+        "computerName": "dr-sql01.example.test",
+        "port": 1433,
+        "timeoutSeconds": 15
+      }
+    },
+    {
+      "id": "start-delivery-controllers",
+      "name": "Start Citrix Delivery Controller VMs",
+      "provider": "VMware",
+      "action": "StartVM",
+      "dependsOn": [
+        "check-sql"
+      ],
+      "expectedDurationSeconds": 300,
+      "parameters": {
+        "vmNames": [
+          "dr-ddc01",
+          "dr-ddc02"
+        ]
+      }
+    },
+    {
+      "id": "check-delivery-controller",
+      "name": "Check Delivery Controller web endpoint",
+      "provider": "Windows",
+      "action": "TestTcpPort",
+      "dependsOn": [
+        "start-delivery-controllers"
+      ],
+      "expectedDurationSeconds": 60,
+      "parameters": {
+        "computerName": "dr-ddc01.example.test",
+        "port": 80,
+        "timeoutSeconds": 15
+      }
+    },
+    {
+      "id": "start-storefront",
+      "name": "Start StoreFront VMs",
+      "provider": "VMware",
+      "action": "StartVM",
+      "dependsOn": [
+        "check-delivery-controller"
+      ],
+      "expectedDurationSeconds": 180,
+      "parameters": {
+        "vmNames": [
+          "dr-sf01",
+          "dr-sf02"
+        ]
+      }
+    },
+    {
+      "id": "check-storefront",
+      "name": "Check StoreFront HTTPS endpoint",
+      "provider": "Windows",
+      "action": "TestHttp",
+      "dependsOn": [
+        "start-storefront"
+      ],
+      "expectedDurationSeconds": 60,
+      "parameters": {
+        "timeoutSeconds": 15,
+        "uri": "https://dr-storefront.example.test/"
+      }
+    },
+    {
+      "id": "start-vdas",
+      "name": "Start VDA VMs",
+      "provider": "VMware",
+      "action": "StartVM",
+      "dependsOn": [
+        "check-storefront"
+      ],
+      "expectedDurationSeconds": 600,
+      "parameters": {
+        "vmNames": [
+          "dr-vda01",
+          "dr-vda02"
+        ]
+      }
+    }
+  ]
+}

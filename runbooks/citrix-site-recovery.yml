@@ -1,6 +1,8 @@
-name: Synthetic Site Recovery
+name: Synthetic Citrix Site Recovery
 version: 1
-description: Fictional dependency-ordered recovery example for simulation and lab use.
+description: >-
+  Fictional recovery of a Citrix site with independent branches for licensing,
+  profile storage, and the gateway. Durations are illustrative planning values.
 steps:
   - id: start-ad
     name: Start Active Directory VMs
@@ -23,6 +25,16 @@ steps:
       port: 389
       timeoutSeconds: 10
 
+  - id: start-netscaler
+    name: Start NetScaler ADC appliances
+    provider: VMware
+    action: StartVM
+    expectedDurationSeconds: 180
+    parameters:
+      vmNames:
+        - dr-adc01
+        - dr-adc02
+
   - id: start-sql
     name: Start SQL VMs
     provider: VMware
@@ -44,11 +56,53 @@ steps:
       port: 1433
       timeoutSeconds: 15
 
+  - id: start-license
+    name: Start Citrix License Server VM
+    provider: VMware
+    action: StartVM
+    dependsOn: [check-ad-ldap]
+    expectedDurationSeconds: 120
+    parameters:
+      vmNames:
+        - dr-lic01
+
+  - id: check-license
+    name: Check Citrix licensing port
+    provider: Windows
+    action: TestTcpPort
+    dependsOn: [start-license]
+    expectedDurationSeconds: 30
+    parameters:
+      computerName: dr-lic01.example.test
+      port: 27000
+      timeoutSeconds: 10
+
+  - id: start-file-server
+    name: Start profile file server VM
+    provider: VMware
+    action: StartVM
+    dependsOn: [check-ad-ldap]
+    expectedDurationSeconds: 180
+    parameters:
+      vmNames:
+        - dr-fs01
+
+  - id: check-smb
+    name: Check SMB on the profile file server
+    provider: Windows
+    action: TestTcpPort
+    dependsOn: [start-file-server]
+    expectedDurationSeconds: 30
+    parameters:
+      computerName: dr-fs01.example.test
+      port: 445
+      timeoutSeconds: 10
+
   - id: start-delivery-controllers
     name: Start Citrix Delivery Controller VMs
     provider: VMware
     action: StartVM
-    dependsOn: [check-sql]
+    dependsOn: [check-sql, check-license]
     expectedDurationSeconds: 300
     parameters:
       vmNames:
@@ -87,13 +141,39 @@ steps:
       uri: https://dr-storefront.example.test/
       timeoutSeconds: 15
 
+  - id: check-gateway
+    name: Check Citrix Gateway logon page
+    provider: Windows
+    action: TestHttp
+    dependsOn: [start-netscaler, check-storefront]
+    expectedDurationSeconds: 60
+    parameters:
+      uri: https://dr-gateway.example.test/
+      timeoutSeconds: 15
+
   - id: start-vdas
     name: Start VDA VMs
     provider: VMware
     action: StartVM
-    dependsOn: [check-storefront]
+    dependsOn: [check-delivery-controller, check-smb]
     expectedDurationSeconds: 600
     parameters:
       vmNames:
         - dr-vda01
         - dr-vda02
+        - dr-vda03
+        - dr-vda04
+
+  - id: wait-vda-tools
+    name: Wait for VMware Tools on the VDAs
+    provider: VMware
+    action: WaitForTools
+    dependsOn: [start-vdas]
+    expectedDurationSeconds: 300
+    parameters:
+      vmNames:
+        - dr-vda01
+        - dr-vda02
+        - dr-vda03
+        - dr-vda04
+      timeoutSeconds: 600

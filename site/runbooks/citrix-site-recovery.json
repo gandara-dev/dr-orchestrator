@@ -1,0 +1,253 @@
+{
+  "name": "Synthetic Citrix Site Recovery",
+  "version": 1,
+  "description": "Fictional recovery of a Citrix site with independent branches for licensing, profile storage, and the gateway. Durations are illustrative planning values.",
+  "steps": [
+    {
+      "id": "start-ad",
+      "name": "Start Active Directory VMs",
+      "provider": "VMware",
+      "action": "StartVM",
+      "expectedDurationSeconds": 240,
+      "parameters": {
+        "vmNames": [
+          "dr-ad01",
+          "dr-ad02"
+        ]
+      }
+    },
+    {
+      "id": "check-ad-ldap",
+      "name": "Check LDAP on the primary domain controller",
+      "provider": "Windows",
+      "action": "TestTcpPort",
+      "dependsOn": [
+        "start-ad"
+      ],
+      "expectedDurationSeconds": 30,
+      "parameters": {
+        "computerName": "dr-ad01.example.test",
+        "port": 389,
+        "timeoutSeconds": 10
+      }
+    },
+    {
+      "id": "start-netscaler",
+      "name": "Start NetScaler ADC appliances",
+      "provider": "VMware",
+      "action": "StartVM",
+      "expectedDurationSeconds": 180,
+      "parameters": {
+        "vmNames": [
+          "dr-adc01",
+          "dr-adc02"
+        ]
+      }
+    },
+    {
+      "id": "start-sql",
+      "name": "Start SQL VMs",
+      "provider": "VMware",
+      "action": "StartVM",
+      "dependsOn": [
+        "check-ad-ldap"
+      ],
+      "expectedDurationSeconds": 300,
+      "parameters": {
+        "vmNames": [
+          "dr-sql01"
+        ]
+      }
+    },
+    {
+      "id": "check-sql",
+      "name": "Check SQL listener",
+      "provider": "Windows",
+      "action": "TestTcpPort",
+      "dependsOn": [
+        "start-sql"
+      ],
+      "expectedDurationSeconds": 60,
+      "parameters": {
+        "computerName": "dr-sql01.example.test",
+        "port": 1433,
+        "timeoutSeconds": 15
+      }
+    },
+    {
+      "id": "start-license",
+      "name": "Start Citrix License Server VM",
+      "provider": "VMware",
+      "action": "StartVM",
+      "dependsOn": [
+        "check-ad-ldap"
+      ],
+      "expectedDurationSeconds": 120,
+      "parameters": {
+        "vmNames": [
+          "dr-lic01"
+        ]
+      }
+    },
+    {
+      "id": "check-license",
+      "name": "Check Citrix licensing port",
+      "provider": "Windows",
+      "action": "TestTcpPort",
+      "dependsOn": [
+        "start-license"
+      ],
+      "expectedDurationSeconds": 30,
+      "parameters": {
+        "computerName": "dr-lic01.example.test",
+        "port": 27000,
+        "timeoutSeconds": 10
+      }
+    },
+    {
+      "id": "start-file-server",
+      "name": "Start profile file server VM",
+      "provider": "VMware",
+      "action": "StartVM",
+      "dependsOn": [
+        "check-ad-ldap"
+      ],
+      "expectedDurationSeconds": 180,
+      "parameters": {
+        "vmNames": [
+          "dr-fs01"
+        ]
+      }
+    },
+    {
+      "id": "check-smb",
+      "name": "Check SMB on the profile file server",
+      "provider": "Windows",
+      "action": "TestTcpPort",
+      "dependsOn": [
+        "start-file-server"
+      ],
+      "expectedDurationSeconds": 30,
+      "parameters": {
+        "computerName": "dr-fs01.example.test",
+        "port": 445,
+        "timeoutSeconds": 10
+      }
+    },
+    {
+      "id": "start-delivery-controllers",
+      "name": "Start Citrix Delivery Controller VMs",
+      "provider": "VMware",
+      "action": "StartVM",
+      "dependsOn": [
+        "check-sql",
+        "check-license"
+      ],
+      "expectedDurationSeconds": 300,
+      "parameters": {
+        "vmNames": [
+          "dr-ddc01",
+          "dr-ddc02"
+        ]
+      }
+    },
+    {
+      "id": "check-delivery-controller",
+      "name": "Check Delivery Controller web endpoint",
+      "provider": "Windows",
+      "action": "TestTcpPort",
+      "dependsOn": [
+        "start-delivery-controllers"
+      ],
+      "expectedDurationSeconds": 60,
+      "parameters": {
+        "computerName": "dr-ddc01.example.test",
+        "port": 80,
+        "timeoutSeconds": 15
+      }
+    },
+    {
+      "id": "start-storefront",
+      "name": "Start StoreFront VMs",
+      "provider": "VMware",
+      "action": "StartVM",
+      "dependsOn": [
+        "check-delivery-controller"
+      ],
+      "expectedDurationSeconds": 180,
+      "parameters": {
+        "vmNames": [
+          "dr-sf01",
+          "dr-sf02"
+        ]
+      }
+    },
+    {
+      "id": "check-storefront",
+      "name": "Check StoreFront HTTPS endpoint",
+      "provider": "Windows",
+      "action": "TestHttp",
+      "dependsOn": [
+        "start-storefront"
+      ],
+      "expectedDurationSeconds": 60,
+      "parameters": {
+        "timeoutSeconds": 15,
+        "uri": "https://dr-storefront.example.test/"
+      }
+    },
+    {
+      "id": "check-gateway",
+      "name": "Check Citrix Gateway logon page",
+      "provider": "Windows",
+      "action": "TestHttp",
+      "dependsOn": [
+        "start-netscaler",
+        "check-storefront"
+      ],
+      "expectedDurationSeconds": 60,
+      "parameters": {
+        "timeoutSeconds": 15,
+        "uri": "https://dr-gateway.example.test/"
+      }
+    },
+    {
+      "id": "start-vdas",
+      "name": "Start VDA VMs",
+      "provider": "VMware",
+      "action": "StartVM",
+      "dependsOn": [
+        "check-delivery-controller",
+        "check-smb"
+      ],
+      "expectedDurationSeconds": 600,
+      "parameters": {
+        "vmNames": [
+          "dr-vda01",
+          "dr-vda02",
+          "dr-vda03",
+          "dr-vda04"
+        ]
+      }
+    },
+    {
+      "id": "wait-vda-tools",
+      "name": "Wait for VMware Tools on the VDAs",
+      "provider": "VMware",
+      "action": "WaitForTools",
+      "dependsOn": [
+        "start-vdas"
+      ],
+      "expectedDurationSeconds": 300,
+      "parameters": {
+        "timeoutSeconds": 600,
+        "vmNames": [
+          "dr-vda01",
+          "dr-vda02",
+          "dr-vda03",
+          "dr-vda04"
+        ]
+      }
+    }
+  ]
+}

@@ -26,6 +26,17 @@ jobs:
         shell: pwsh
         run: Invoke-Pester -Path ./tests/DrOrchestrator.Tests.ps1 -CI -Output Detailed
 
+  web-tests:
+    name: Runbook Viewer tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run fixtures generated from the PowerShell engine
+        run: node --test tests/web/*.test.mjs
+
   static-analysis:
     name: PowerShell static analysis
     runs-on: ubuntu-latest
