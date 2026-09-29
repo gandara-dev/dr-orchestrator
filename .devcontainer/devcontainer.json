@@ -14,7 +14,9 @@
     "8766": { "label": "Runbook Viewer", "onAutoForward": "openBrowser" }
   },
   "postCreateCommand": "pwsh -NoProfile -File .devcontainer/setup.ps1",
-  "postStartCommand": "nohup pwsh -NoProfile -File scripts/Start-RunbookViewer.ps1 -Port 8766 > /tmp/runbook-viewer.log 2>&1 &",
+  "postAttachCommand": {
+    "runbook-viewer": "pwsh -NoProfile -File scripts/Start-RunbookViewer.ps1 -Port 8766"
+  },
   "customizations": {
     "codespaces": {
       "openFiles": [".devcontainer/README.md"]
