@@ -16,7 +16,16 @@ failure, and produces a measured Markdown and HTML timeline.
 
 ![DR Orchestrator simulation](docs/demo.gif)
 
-## Try it: Runbook Viewer
+## Try it
+
+**Run it for real in your browser:** a codespace with PowerShell 7, the
+module, the Runbook Viewer, and a script that drives the VMware provider
+against `vcsim`, the vCenter simulator. A GitHub account is needed; the
+codespace uses your own free Codespaces quota.
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/gandara-dev/dr-orchestrator?quickstart=1)
+
+### Runbook Viewer
 
 **[Open the Runbook Viewer](https://gandara-dev.github.io/dr-orchestrator/)** to
 explore a recovery in the browser, with no installation.

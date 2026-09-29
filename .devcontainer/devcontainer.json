@@ -1,0 +1,28 @@
+{
+  "name": "DR Orchestrator",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/powershell:1": {}
+  },
+  "hostRequirements": {
+    "cpus": 2,
+    "memory": "4gb"
+  },
+  "forwardPorts": [8766],
+  "portsAttributes": {
+    "8766": { "label": "Runbook Viewer", "onAutoForward": "openBrowser" }
+  },
+  "postCreateCommand": "pwsh -NoProfile -File .devcontainer/setup.ps1",
+  "postAttachCommand": {
+    "runbook-viewer": "pwsh -NoProfile -File scripts/Start-RunbookViewer.ps1 -Port 8766"
+  },
+  "customizations": {
+    "codespaces": {
+      "openFiles": [".devcontainer/README.md"]
+    },
+    "vscode": {
+      "extensions": ["ms-vscode.powershell"]
+    }
+  }
+}

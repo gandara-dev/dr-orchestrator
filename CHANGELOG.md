@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here.
 
+## [Unreleased]
+
+### Added
+
+- GitHub Codespaces configuration: PowerShell 7 with the module and its test
+  dependencies, the Runbook Viewer on a forwarded port, and a script that runs
+  the VMware provider integration test against vcsim.
+
 ## [0.2.1] - 2026-09-29
 
 ### Changed
