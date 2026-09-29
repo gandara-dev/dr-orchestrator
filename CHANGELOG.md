@@ -2,10 +2,13 @@
 
 All notable changes to this project are documented here.
 
-## [Unreleased]
+## [0.2.1] - 2026-09-29
 
 ### Changed
 
+- Runbook Viewer redesigned as a printable procedure: numbered steps with
+  targets and dependencies, a planned-versus-drill schedule, and a timestamped
+  drill log. The page prints as a runbook document.
 - License changed from MIT to PolyForm Shield 1.0.0. Releases up to v0.2.0
   remain available under the MIT license.
 

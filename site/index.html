@@ -4,92 +4,73 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Runbook Viewer | DR Orchestrator</title>
-  <meta name="description" content="Explore a dependency-aware disaster recovery runbook: inject failures, simulate the recovery, and see the critical path and planned recovery time.">
+  <meta name="description" content="Read a dependency-aware disaster recovery runbook as a procedure, mark steps to fail, and run a simulated drill.">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="banner" role="note">
-    Simulation with synthetic example runbooks. Nothing here connects to vCenter, Windows, or any real system.
-  </div>
+  <nav class="bar no-print">
+    <a class="name" href="https://github.com/gandara-dev/dr-orchestrator">dr-orchestrator</a>
+    <span class="dim">runbook viewer · synthetic runbooks, simulated drill</span>
+    <span class="grow"></span>
+    <label>runbook
+      <select id="runbook-select">
+        <option value="citrix-site-recovery">Citrix site recovery</option>
+        <option value="site-recovery">Site recovery (linear)</option>
+      </select>
+    </label>
+    <label class="button" for="open-file">open JSON…</label>
+    <input type="file" id="open-file" accept="application/json,.json" class="sr-only">
+  </nav>
 
-  <div class="wrap">
-    <header class="top">
-      <h1>Runbook Viewer</h1>
-      <p>
-        See how the <a href="https://github.com/gandara-dev/dr-orchestrator">DR Orchestrator</a> recovers a site.
-        Choose steps that should fail, run the simulation, and watch dependent steps get blocked while
-        independent branches keep going. The browser engine is tested against the same fixtures as the PowerShell module.
-      </p>
+  <main class="paper">
+    <header class="doc-head">
+      <div class="kind">Disaster recovery runbook</div>
+      <h1 id="title"></h1>
+      <p id="description" class="lede"></p>
+      <dl class="fields" id="fields"></dl>
     </header>
 
-    <div class="controls" role="group" aria-label="Simulation controls">
-      <label>Runbook
-        <select id="runbook-select">
-          <option value="citrix-site-recovery">Citrix site recovery (branches)</option>
-          <option value="site-recovery">Linear site recovery</option>
-        </select>
-      </label>
-      <label class="button" for="open-file">Open runbook JSON</label>
-      <input type="file" id="open-file" accept="application/json,.json" class="sr-only">
-      <label>Speed
+    <div class="drill no-print" role="group" aria-label="Drill controls">
+      <button type="button" class="primary" id="run">Run drill</button>
+      <label>pace
         <select id="speed">
-          <option value="80">Fast</option>
-          <option value="250" selected>Normal</option>
-          <option value="600">Slow</option>
-          <option value="0">Instant</option>
+          <option value="60">fast</option>
+          <option value="200" selected>normal</option>
+          <option value="500">slow</option>
+          <option value="0">instant</option>
         </select>
       </label>
-      <span class="spacer"></span>
-      <button type="button" id="clear-failures">Clear failures</button>
-      <button type="button" id="reset">Reset</button>
-      <button type="button" class="primary" id="run">Run simulation</button>
+      <button type="button" id="clear-failures">clear failures</button>
+      <button type="button" id="reset">reset</button>
+      <span class="grow"></span>
+      <button type="button" id="download-report" disabled>report.md</button>
+      <button type="button" id="print">print</button>
     </div>
-    <div class="error-box" id="load-error" role="alert"></div>
+    <p class="error" id="load-error" role="alert"></p>
 
-    <dl class="stats" id="stats"></dl>
-
-    <section class="card" aria-labelledby="graph-title">
-      <h2 id="graph-title">Dependency graph</h2>
-      <p class="hint">Columns are dependency levels; scroll sideways on smaller screens. Select a step to see its details and choose whether it should fail in the next run.</p>
-      <div class="graph-scroll"><svg class="graph" id="graph" role="img" aria-label="Runbook dependency graph"></svg></div>
-      <div class="legend">
-        <span class="l-critical">Critical path</span>
-        <span class="l-inject">Will fail</span>
-        <span class="l-ok">Succeeded</span>
-        <span class="l-fail">Failed</span>
-        <span class="l-block">Blocked</span>
-      </div>
+    <section>
+      <h2><span class="num">1</span> Procedure</h2>
+      <p class="note no-print">Select a step to make it fail in the next drill. Steps marked <b class="crit-mark">▍</b> are on the critical path.</p>
+      <table class="procedure" id="procedure"></table>
     </section>
 
-    <div class="layout">
-      <section class="card" aria-labelledby="timeline-title">
-        <h2 id="timeline-title">Timeline</h2>
-        <p class="timeline-legend">
-          Outlined bars: earliest start and finish if independent branches ran in parallel (the critical path is highlighted).
-          Solid bars: the simulated run, one step at a time, which is how the engine executes today.
-        </p>
-        <div class="timeline" id="timeline"></div>
-      </section>
+    <section>
+      <h2><span class="num">2</span> Schedule</h2>
+      <p class="note">Outlined bars: earliest start if independent steps ran in parallel. Solid bars: the drill, one step at a time, as the engine runs today.</p>
+      <div class="schedule" id="schedule"></div>
+    </section>
 
-      <aside>
-        <section class="card detail" aria-labelledby="detail-title">
-          <h2 id="detail-title">Step details</h2>
-          <div id="detail"><p class="hint">Select a step in the graph.</p></div>
-        </section>
-        <section class="card" aria-labelledby="export-title">
-          <h2 id="export-title">Report</h2>
-          <p class="hint">After a run, download a Markdown report with the same table layout as <code>Export-DrReport</code>.</p>
-          <button type="button" id="download-report" disabled>Download report.md</button>
-        </section>
-      </aside>
-    </div>
+    <section>
+      <h2><span class="num">3</span> Drill log</h2>
+      <pre class="log" id="log"></pre>
+    </section>
 
-    <footer>
-      Durations are illustrative planning values from the runbook, not measurements. The simulated run replaces every
-      provider call with a synthetic result; it proves ordering and failure propagation, not your infrastructure's RTO.
+    <footer class="doc-foot">
+      Durations are planning values from the runbook, not measurements. The drill replaces every provider call with a simulated
+      result: it shows ordering and failure propagation, not the recovery time of real infrastructure.
       Convert your own YAML with <code>scripts/Export-DrRunbookJson.ps1</code> and open it here.
     </footer>
-  </div>
+  </main>
 
   <script type="module" src="app.js"></script>
 </body>

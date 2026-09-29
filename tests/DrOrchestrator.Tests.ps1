@@ -9,7 +9,7 @@ Describe 'Module contract' {
         $manifest = Test-ModuleManifest -Path $modulePath
         $commands = @(Get-Command -Module DrOrchestrator | Select-Object -ExpandProperty Name)
 
-        $manifest.Version | Should -Be '0.2.0'
+        $manifest.Version | Should -Be '0.2.1'
         (($commands | Sort-Object) -join ',') | Should -Be (
             'Export-DrReport,Get-DrExecutionOrder,Get-DrRecoveryPlan,Import-DrRunbook,Invoke-DrRunbook'
         )
