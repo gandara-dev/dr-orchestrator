@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/gandara-dev/dr-orchestrator/actions/workflows/ci.yml/badge.svg)](https://github.com/gandara-dev/dr-orchestrator/actions/workflows/ci.yml)
 [![PowerShell 7.2+](https://img.shields.io/badge/PowerShell-7.2%2B-5391FE.svg)](https://learn.microsoft.com/powershell/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License: PolyForm Shield 1.0.0](https://img.shields.io/badge/License-PolyForm%20Shield%201.0.0-lightgrey.svg)](LICENSE)
 
 Dependency-aware disaster recovery runbooks for VMware and Windows recovery
 workflows. DR Orchestrator validates a versioned YAML graph, executes recovery
@@ -195,4 +195,7 @@ collection. These are explicit safety boundaries, not implicit promises.
 
 ## License
 
-[MIT](LICENSE)
+[PolyForm Shield 1.0.0](LICENSE). You may use, study, and modify this project,
+including inside your organization, but not to offer a product that competes
+with it. This is a source-available license, not an OSI-approved open-source
+license. Releases up to v0.2.0 were published under the MIT license.

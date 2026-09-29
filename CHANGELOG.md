@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## [Unreleased]
+
+### Changed
+
+- License changed from MIT to PolyForm Shield 1.0.0. Releases up to v0.2.0
+  remain available under the MIT license.
+
 ## [0.2.0] - 2026-09-28
 
 ### Added
