@@ -23,12 +23,14 @@ explore a recovery in the browser, with no installation.
 
 ![Runbook Viewer](docs/runbook-viewer.jpg)
 
-- See the dependency graph by level, with the critical path highlighted.
-- Choose steps that should fail and run the simulation: dependent steps are
-  blocked while independent branches, such as licensing, profile storage, or the
-  gateway, keep going.
+- Read the runbook as a numbered procedure: target, provider, the steps each
+  one waits for, and planned duration, with the critical path marked.
+- Select steps that should fail and run a drill: dependent steps are blocked
+  while independent branches, such as licensing, profile storage, or the
+  gateway, keep going. The drill log records each step with a T+ timestamp.
 - Compare the sequential estimate (how the engine runs) with the critical path
-  (the lower bound with parallel branches), and download a Markdown report.
+  (the lower bound with parallel branches), download a Markdown report, or
+  print the page as a runbook.
 
 The viewer's engine is a JavaScript port tested against fixtures generated from
 the PowerShell module, so it validates, orders, and propagates failures exactly
@@ -189,7 +191,7 @@ instance. It never requires a production vCenter. See the
 
 ## Current scope
 
-Version `0.2.0` executes steps sequentially and does not implement retries,
+Version `0.2.1` executes steps sequentially and does not implement retries,
 parallel execution of branches, automatic rollback, credential storage, or remote evidence
 collection. These are explicit safety boundaries, not implicit promises.
 

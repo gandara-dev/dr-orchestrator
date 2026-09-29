@@ -1,6 +1,6 @@
 @{
     RootModule = 'DrOrchestrator.psm1'
-    ModuleVersion = '0.2.0'
+    ModuleVersion = '0.2.1'
     GUID = 'e3d9ef25-283f-45ba-95a1-e3bd5519b1da'
     Author = 'Mateus Gandara'
     CompanyName = 'Community'
