@@ -200,7 +200,7 @@ instance. It never requires a production vCenter. See the
 
 ## Current scope
 
-Version `0.2.1` executes steps sequentially and does not implement retries,
+Version `0.2.2` executes steps sequentially and does not implement retries,
 parallel execution of branches, automatic rollback, credential storage, or remote evidence
 collection. These are explicit safety boundaries, not implicit promises.
 

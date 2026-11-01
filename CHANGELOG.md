@@ -4,11 +4,18 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-11-01
+
 ### Added
 
 - GitHub Codespaces configuration: PowerShell 7 with the module and its test
   dependencies, the Runbook Viewer on a forwarded port, and a script that runs
   the VMware provider integration test against vcsim.
+
+### Fixed
+
+- Dependabot watched a `docker` ecosystem with no Dockerfile in the repository,
+  so every weekly run failed. It now watches the dev container features.
 
 ## [0.2.1] - 2026-09-29
 
